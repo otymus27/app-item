@@ -1,16 +1,21 @@
-// src/services/axiosInstance.js
 import axios from 'axios';
 
-const instance = axios.create({
+const API = axios.create({
   baseURL: 'http://localhost:8080',
+  withCredentials: true, // necessário se estiver usando cookies
 });
 
-instance.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+export const login = async (email, senha) => {
+  const response = await API.post('/login', { email, senha });
+  return response.data; // { token: "..." }
+};
+
+export const setAuthToken = (token) => {
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    API.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete API.defaults.headers.common['Authorization'];
   }
-  return config;
-});
+};
 
-export default instance;
+export default API;
