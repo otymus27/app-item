@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography, Box, CircularProgress, Alert } from '@mui/material';
+import { Typography, Box, CircularProgress, Alert, Toolbar } from '@mui/material';
 import Container from '../../components/Container/Container.jsx';
 import Footer from '../../components/Footer/Footer.jsx';
 import CustomHeader from '../../components/Header/CustomHeader.jsx';
 import useAuth from '../../hooks/useAuth.jsx';
+import Dashboard from '../../components/Dashboard/Dashboard.jsx';
+import Sidebar from '../../components/Sidebar/Sidebar.jsx';
 
 
 const HomePage = () => {
@@ -42,17 +44,21 @@ const HomePage = () => {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <CustomHeader user={user} onLogout={logout} />
-      <Container>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Bem-vindo, {user.login}
-        </Typography>
-        <Typography variant="body1">
-          Esta é a página inicial protegida.
-        </Typography>
-      </Container>
-      <Footer />
+    <Box sx={{ display: 'flex', height: '100vh' }}>
+      <Sidebar />
+      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+        <CustomHeader user={user} onLogout={logout} />
+        <Toolbar />
+        <Box sx={{ flexGrow: 1, p: 3 }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Bem-vindo, {user.login}
+          </Typography>
+          <Typography variant="body1">
+            Esta é a página inicial protegida.
+          </Typography>
+        </Box>
+        <Footer />
+      </Box>
     </Box>
   );
 };
