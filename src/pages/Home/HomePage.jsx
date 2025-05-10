@@ -1,50 +1,56 @@
-import React from 'react';
-import { Typography, Box, Button } from '@mui/material';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from './../../components/Header/Header.jsx';
-import Footer from './../../components/Footer/Footer.jsx';
+import { Typography, Box, CircularProgress, Alert } from '@mui/material';
 import Container from '../../components/Container/Container.jsx';
+import Footer from '../../components/Footer/Footer.jsx';
+import CustomHeader from '../../components/Header/CustomHeader.jsx';
+import useAuth from '../../hooks/useAuth.jsx';
+
 
 const HomePage = () => {
+  const { isLoggedIn, user, loading, error, logout } = useAuth();
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/');
-  };
+  
 
-  if (!token) {
+  useEffect(() => {
+    if (!loading && !isLoggedIn) {
+      // Evita navegar se já estiver na página de login
+      navigate('/', { replace: true });
+    }
+  }, [isLoggedIn, loading, navigate]);
+
+  if (loading) {
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '100vh',
-          bgcolor: 'grey.100',
-        }}
-      >
-        <Typography variant="h6" color="error">
-          Você não está autenticado. Por favor, faça o login.
-        </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <CircularProgress />
       </Box>
+    );
+  }
+
+  if (error) {
+    return <Alert severity="error">{error}</Alert>;
+  }
+
+  // Garante que só renderiza se estiver logado e o usuário estiver disponível
+  if (!isLoggedIn || !user) {
+    return (
+      <Alert severity="warning">
+        Dados do usuário não disponíveis. Tente fazer login novamente.
+      </Alert>
     );
   }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <Header />
+      <CustomHeader user={user} onLogout={logout} />
       <Container>
         <Typography variant="h4" component="h1" gutterBottom>
-          Bem-vindo à Página Inicial
+          Bem-vindo, {user.login}
         </Typography>
-        <Typography variant="body1" paragraph>
-          Esta é uma página inicial com um layout consistente.
+        <Typography variant="body1">
+          Esta é a página inicial protegida.
         </Typography>
-        <Button variant="contained" color="primary" onClick={handleLogout}>
-          Logout
-        </Button>
       </Container>
       <Footer />
     </Box>

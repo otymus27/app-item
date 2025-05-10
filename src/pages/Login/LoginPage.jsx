@@ -4,93 +4,45 @@ import { FaUser, FaLock } from 'react-icons/fa';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useNavigate } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
+import { useAuth } from '../../context/AuthContext';
 
 const LoginPage = () => {
-  const [login, setLogin] = useState('');
+  const [loginInput, setLoginInput] = useState('');
   const [senha, setSenha] = useState('');
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [localError, setLocalError] = useState(null);
+  const [localLoading, setLocalLoading] = useState(false);
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
+    setLocalError(null);
+    setLocalLoading(true);
 
-    // Validação dos campos
-    if (!login.trim()) {
-      setError('Por favor, insira o seu nome de utilizador.');
-      setLoading(false);
+    if (!loginInput.trim()) {
+      setLocalError('Por favor, insira o seu nome de utilizador.');
+      setLocalLoading(false);
       return;
     }
     if (!senha.trim()) {
-      setError('Por favor, insira a sua senha.');
-      setLoading(false);
-      return;
-    }
-    if (senha.length < 3) {
-      setError('A senha deve ter pelo menos 3 caracteres.');
-      setLoading(false);
+      setLocalError('Por favor, insira a sua senha.');
+      setLocalLoading(false);
       return;
     }
 
     try {
-      // Simula uma chamada à API de login
-      const response = await fetch('http://localhost:8080/login', {
-        // Use o endpoint da sua API
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ login: login, senha: senha }), // Adapte os nomes dos campos se necessário
-      });
-
-      if (!response.ok) {
-        let errorMessage = 'Erro ao fazer login: Tente novamente mais tarde.';
-        const errorData = await response.json(); // Tenta obter detalhes do erro da resposta
-        if (errorData && errorData.message) {
-          errorMessage = errorData.message; // Usa a mensagem de erro da API, se disponível
-        } else if (response.status === 401) {
-          errorMessage = 'Credenciais Inválidas. Verifique seu nome de usuário e senha';
-        }
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-      localStorage.setItem('token', data.token); // Armazena o token JWT
+      await login(loginInput, senha); // ✅ Usa o login do contexto
       navigate('/home');
     } catch (err) {
-      // Captura erros da API e define mensagens de erro específicas
-      console.error(err);
-      setError(err.message); // Usa a mensagem de erro definida no bloco catch
+      setLocalError(err.message);
     } finally {
-      setLoading(false);
+      setLocalLoading(false);
     }
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        background: 'linear-gradient(to right, #4facfe, #00f2fe)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        p: 2,
-      }}
-    >
-      <Box
-        sx={{
-          width: '100%',
-          maxWidth: 400,
-          bgcolor: 'white',
-          p: 4,
-          borderRadius: 4,
-          boxShadow: 3,
-        }}
-        component="form"
-        onSubmit={handleLogin}
-      >
+    <Box sx={{ minHeight: '100vh', background: 'linear-gradient(to right, #4facfe, #00f2fe)', display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2 }}>
+      <Box sx={{ width: '100%', maxWidth: 400, bgcolor: 'white', p: 4, borderRadius: 4, boxShadow: 3 }} component="form" onSubmit={handleLogin}>
         <Box textAlign="center" mb={3}>
           <Avatar sx={{ m: '0 auto', bgcolor: 'primary.main' }}>
             <LockOutlinedIcon />
@@ -100,24 +52,16 @@ const LoginPage = () => {
           </Typography>
         </Box>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
+        {localError && <Alert severity="error" sx={{ mb: 2 }}>{localError}</Alert>}
 
         <FormControl fullWidth margin="normal" variant="standard">
           <InputLabel htmlFor="login">Login</InputLabel>
           <Input
             id="login"
             type="text"
-            value={login}
-            onChange={(e) => setLogin(e.target.value)}
-            startAdornment={
-              <InputAdornment position="start">
-                <FaUser />
-              </InputAdornment>
-            }
+            value={loginInput}
+            onChange={(e) => setLoginInput(e.target.value)}
+            startAdornment={<InputAdornment position="start"><FaUser /></InputAdornment>}
             placeholder="Digite seu nome de utilizador"
           />
         </FormControl>
@@ -129,17 +73,13 @@ const LoginPage = () => {
             type="password"
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
-            startAdornment={
-              <InputAdornment position="start">
-                <FaLock />
-              </InputAdornment>
-            }
+            startAdornment={<InputAdornment position="start"><FaLock /></InputAdornment>}
             placeholder="Digite sua senha"
           />
         </FormControl>
 
-        <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }} disabled={loading}>
-          {loading ? <CircularProgress size={24} color="inherit" /> : 'Entrar'}
+        <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }} disabled={localLoading}>
+          {localLoading ? <CircularProgress size={24} color="inherit" /> : 'Entrar'}
         </Button>
       </Box>
     </Box>
