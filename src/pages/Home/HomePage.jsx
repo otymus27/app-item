@@ -5,19 +5,14 @@ import Container from '../../components/Container/Container.jsx';
 import Footer from '../../components/Footer/Footer.jsx';
 import CustomHeader from '../../components/Header/CustomHeader.jsx';
 import useAuth from '../../hooks/useAuth.jsx';
-import Dashboard from '../../components/Dashboard/Dashboard.jsx';
 import Sidebar from '../../components/Sidebar/Sidebar.jsx';
-
 
 const HomePage = () => {
   const { isLoggedIn, user, loading, error, logout } = useAuth();
   const navigate = useNavigate();
 
-  
-
   useEffect(() => {
     if (!loading && !isLoggedIn) {
-      // Evita navegar se já estiver na página de login
       navigate('/', { replace: true });
     }
   }, [isLoggedIn, loading, navigate]);
@@ -34,13 +29,8 @@ const HomePage = () => {
     return <Alert severity="error">{error}</Alert>;
   }
 
-  // Garante que só renderiza se estiver logado e o usuário estiver disponível
   if (!isLoggedIn || !user) {
-    return (
-      <Alert severity="warning">
-        Dados do usuário não disponíveis. Tente fazer login novamente.
-      </Alert>
-    );
+    return <Alert severity="warning">Dados do usuário não disponíveis. Tente fazer login novamente.</Alert>;
   }
 
   return (
@@ -51,11 +41,9 @@ const HomePage = () => {
         <Toolbar />
         <Box sx={{ flexGrow: 1, p: 3 }}>
           <Typography variant="h4" component="h1" gutterBottom>
-            Bem-vindo, {user.login}
+            Bem-vindo, {user.login} ({user.role})
           </Typography>
-          <Typography variant="body1">
-            Esta é a página inicial protegida.
-          </Typography>
+          <Typography variant="body1">Esta é a página inicial protegida.</Typography>
         </Box>
         <Footer />
       </Box>
