@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Box, Typography, Button, TextField, Pagination, Snackbar, Alert } from '@mui/material';
 import { Home, Search } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -6,9 +6,9 @@ import { useNavigate } from 'react-router-dom';
 // Hooks e Componentes personalizados
 import useAuth from '../../hooks/useAuth.jsx';
 import { useClientesLogic } from '../../hooks/UseClientesLogic.jsx';
-import { useClientesPagination } from '../../hooks/useClientesPagination.jsx';
 import ClientesList from '../../pages/Clientes/ClientesList.jsx';
 import ClienteModal from '../../components/Modals/ClienteModal.jsx';
+import GerarRelatorio from '../../components/Relatorios/ClientesRelatorio.jsx';
 
 // Componentes de layout
 import Sidebar from '../../components/Sidebar/Sidebar';
@@ -18,6 +18,12 @@ import Footer from '../../components/Footer/Footer';
 const ClientesPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Estado para ordenação
+  const [sortConfig, setSortConfig] = useState({
+    field: 'nome',
+    order: 'asc',
+  });
 
   // Lógica de gerenciamento de clientes
   const {
@@ -38,8 +44,61 @@ const ClientesPage = () => {
     setFormData,
   } = useClientesLogic(user);
 
-  // Lógica de paginação
-  const { currentPage, paginatedCustomers, totalPages, handlePageChange } = useClientesPagination(filteredCustomers);
+  // Função de ordenação
+  const sortedCustomers = useMemo(() => {
+    if (!filteredCustomers) return [];
+
+    return [...filteredCustomers].sort((a, b) => {
+      const valueA = String(a[sortConfig.field] || '').toLowerCase();
+      const valueB = String(b[sortConfig.field] || '').toLowerCase();
+
+      if (sortConfig.order === 'asc') {
+        return valueA.localeCompare(valueB);
+      } else {
+        return valueB.localeCompare(valueA);
+      }
+    });
+  }, [filteredCustomers, sortConfig]);
+
+  // Lógica de paginação com ordenação
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Calcular total de páginas
+  const totalPages = Math.ceil(sortedCustomers.length / itemsPerPage);
+
+  // Paginar clientes ordenados
+  const paginatedCustomers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return sortedCustomers.slice(startIndex, endIndex);
+  }, [sortedCustomers, currentPage]);
+
+  // Manipular mudança de página
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
+
+  // Manipular mudança de ordenação
+  const handleSortChange = (field) => {
+    // Se o campo for o mesmo, alterna a ordem
+    setSortConfig((prevConfig) => {
+      if (prevConfig.field === field) {
+        return {
+          field,
+          order: prevConfig.order === 'asc' ? 'desc' : 'asc',
+        };
+      }
+      // Se for um campo diferente, define para ascendente
+      return {
+        field,
+        order: 'asc',
+      };
+    });
+
+    // Resetar para primeira página
+    setCurrentPage(1);
+  };
 
   // Navegação para home
   const handleGoHome = () => navigate('/home');
@@ -84,10 +143,15 @@ const ClientesPage = () => {
               value={searchTerm}
               onChange={handleSearchChange}
             />
+
             {user.role === 'ADMIN' && (
-              <Button variant="contained" color="primary" onClick={() => handleOpenModal()}>
-                Adicionar Cliente
-              </Button>
+              <>
+                <Button variant="contained" color="primary" onClick={() => handleOpenModal()}>
+                  Adicionar Cliente
+                </Button>
+
+                <GerarRelatorio clientes={filteredCustomers} loading={isLoading} />
+              </>
             )}
           </Box>
 
@@ -97,6 +161,8 @@ const ClientesPage = () => {
             user={user}
             onEditCustomer={handleOpenModal}
             onDeleteCustomer={handleDeleteCustomer}
+            sortConfig={sortConfig}
+            onSortChange={handleSortChange}
           />
 
           {totalPages > 0 && (
