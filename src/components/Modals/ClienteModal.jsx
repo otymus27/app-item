@@ -1,18 +1,9 @@
 import React from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, CircularProgress } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, CircularProgress } from '@mui/material';
 
-const ClienteModal = ({
-  open,
-  handleClose,
-  formData,
-  setFormData,
-  selectedCustomer,
-  handleSave,
-  isLoading,
-    userRole
-}) => {
+const ClienteModal = ({ open, onClose, selectedCustomer, formData, onFormChange, onSave, isLoading, user }) => {
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>{selectedCustomer ? 'Editar Cliente' : 'Adicionar Novo Cliente'}</DialogTitle>
       <DialogContent>
         <TextField
@@ -24,7 +15,7 @@ const ClienteModal = ({
           fullWidth
           variant="outlined"
           value={formData.nome}
-          onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+          onChange={(e) => onFormChange('nome', e.target.value)}
           required
         />
         <TextField
@@ -35,7 +26,7 @@ const ClienteModal = ({
           fullWidth
           variant="outlined"
           value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          onChange={(e) => onFormChange('email', e.target.value)}
           required
         />
         <TextField
@@ -46,17 +37,14 @@ const ClienteModal = ({
           fullWidth
           variant="outlined"
           value={formData.telefone}
-          onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+          onChange={(e) => onFormChange('telefone', e.target.value)}
         />
       </DialogContent>
       <DialogActions sx={{ pb: 2, pr: 2 }}>
-        <Button onClick={handleClose}>Cancelar</Button>
-        {userRole === 'ADMIN' && (
-          <Button variant="contained" onClick={handleSave} disabled={isLoading}>
-            {isLoading && selectedCustomer === null ? <CircularProgress size={24} /> : 'Salvar'}
-            {isLoading && selectedCustomer !== null ? <CircularProgress size={24} /> : ''}
-            {isLoading && open ? <CircularProgress size={24} sx={{ mr: 1 }} /> : null}
-            {selectedCustomer ? 'Salvar Alterações' : 'Criar Cliente'}
+        <Button onClick={onClose}>Cancelar</Button>
+        {user.role === 'ADMIN' && (
+          <Button variant="contained" onClick={onSave} disabled={isLoading}>
+            {isLoading ? <CircularProgress size={24} /> : 'Salvar'}
           </Button>
         )}
       </DialogActions>

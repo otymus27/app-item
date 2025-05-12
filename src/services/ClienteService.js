@@ -1,12 +1,14 @@
 import { API } from '../services/api';
 
+const API_URL = '/cliente'; // Ajuste conforme sua configuração de backend
+
 /**
  * Busca todos os clientes
  * @returns {Promise}
  */
 export const getCustomers = async () => {
   try {
-    const response = await API.get('/cliente'); // Rota correta na API
+    const response = await API.get(API_URL); // Rota correta na API
     return response.data; // Retorna [{ id, nome, email, telefone }]
   } catch (error) {
     console.error('Erro ao buscar clientes:', error);
@@ -14,22 +16,12 @@ export const getCustomers = async () => {
   }
 };
 
-/**
- * Adiciona um novo cliente
- * @param {Object} customer
- * @returns {Promise}
- */
-export const addCustomer = async (customer) => {
+export const addCustomer = async (customerData) => {
   try {
-    const response = await API.post('/cliente', {
-      id: customer.id, // Incluindo ID caso necessário
-      nome: customer.nome,
-      email: customer.email,
-      telefone: customer.telefone,
-    });
+    const response = await API.post('cliente', customerData);
     return response.data;
   } catch (error) {
-    console.error('Erro ao cadastrar cliente:', error);
+    console.error('Erro ao adicionar cliente:', error);
     throw error;
   }
 };
