@@ -63,7 +63,7 @@ const Sidebar = () => {
       icon: <Person />,
       text: 'Usuários',
       children: [
-        { text: 'Cadastrar', path: '/usuarios/cadastrar', icon: <AddCircleOutline /> },
+        { text: 'Gerenciar', path: '/usuarios', icon: <AddCircleOutline /> },
         { text: 'Consultar', path: '/usuarios/consultar', icon: <Search /> },
         { text: 'Relatório', path: '/usuarios/relatorio', icon: <BarChart /> },
       ],
@@ -83,7 +83,7 @@ const Sidebar = () => {
       icon: <Category />,
       text: 'Categorias',
       children: [
-        { text: 'Cadastrar', path: '/categorias/cadastrar', icon: <AddCircleOutline /> },
+        { text: 'Gerenciar', path: '/categoria', icon: <AddCircleOutline /> },
         { text: 'Consultar', path: '/categorias/consultar', icon: <Search /> },
         { text: 'Relatório', path: '/categorias/relatorio', icon: <BarChart /> },
       ],

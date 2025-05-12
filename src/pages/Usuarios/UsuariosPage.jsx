@@ -5,105 +5,82 @@ import { useNavigate } from 'react-router-dom';
 
 // Hooks e Componentes personalizados
 import useAuth from '../../hooks/useAuth.jsx';
-import { useClientesLogic } from '../../hooks/Clientes/UseClientesLogic.jsx';
-import ClientesList from '../../pages/Clientes/ClientesList.jsx';
-import ClienteModal from '../../components/Modals/ClienteModal.jsx';
-import GerarRelatorio from '../../components/Relatorios/ClientesRelatorio.jsx';
+import { useUsuariosLogic } from '../../hooks/Usuarios/UseUsuariosLogic.jsx';
+import UsuariosList from '../../pages/Usuarios/UsuariosList.jsx';
+import UsuarioModal from '../../components/Modals/UsuarioModal.jsx';
+import GerarRelatorioUsuarios from '../../components/Relatorios/UsuariosRelatorio.jsx';
 
 // Componentes de layout
 import Sidebar from '../../components/Sidebar/Sidebar';
 import CustomHeader from '../../components/Header/CustomHeader';
 import Footer from '../../components/Footer/Footer';
 
-const ClientesPage = () => {
+const UsuariosPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   // Estado para ordenação
   const [sortConfig, setSortConfig] = useState({
-    field: 'nome',
+    field: 'login',
     order: 'asc',
   });
 
-  // Lógica de gerenciamento de clientes
+  // Lógica de gerenciamento dos usuários
   const {
-    filteredCustomers,
+    filteredUsuarios,
     searchTerm,
     isLoading,
     openModal,
-    selectedCustomer,
+    selectedUsuario,
     formData,
     notification,
-
     handleSearchChange,
     handleOpenModal,
     handleCloseModal,
     handleSave,
-    handleDeleteCustomer,
+    handleDeleteUsuario,
     handleCloseNotification,
     setFormData,
-  } = useClientesLogic(user);
+  } = useUsuariosLogic(user);
 
-  // Função de ordenação
-  const sortedCustomers = useMemo(() => {
-    if (!filteredCustomers) return [];
-
-    return [...filteredCustomers].sort((a, b) => {
+  // Lógica de ordenação
+  const sortedUsuarios = useMemo(() => {
+    if (!filteredUsuarios) return [];
+    return [...filteredUsuarios].sort((a, b) => {
       const valueA = String(a[sortConfig.field] || '').toLowerCase();
       const valueB = String(b[sortConfig.field] || '').toLowerCase();
-
-      if (sortConfig.order === 'asc') {
-        return valueA.localeCompare(valueB);
-      } else {
-        return valueB.localeCompare(valueA);
-      }
+      return sortConfig.order === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
     });
-  }, [filteredCustomers, sortConfig]);
+  }, [filteredUsuarios, sortConfig]);
 
-  // Lógica de paginação com ordenação
+  // Lógica de paginação
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
-  // Calcular total de páginas
-  const totalPages = Math.ceil(sortedCustomers.length / itemsPerPage);
-
-  // Paginar clientes ordenados
-  const paginatedCustomers = useMemo(() => {
+  const totalPages = Math.ceil(sortedUsuarios.length / itemsPerPage);
+  const paginatedUsuarios = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return sortedCustomers.slice(startIndex, endIndex);
-  }, [sortedCustomers, currentPage]);
+    return sortedUsuarios.slice(startIndex, startIndex + itemsPerPage);
+  }, [sortedUsuarios, currentPage]);
 
-  // Manipular mudança de página
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
 
-  // Manipular mudança de ordenação
+  // Lógica de alteração de ordenação
   const handleSortChange = (field) => {
-    // Se o campo for o mesmo, alterna a ordem
     setSortConfig((prevConfig) => {
       if (prevConfig.field === field) {
-        return {
-          field,
-          order: prevConfig.order === 'asc' ? 'desc' : 'asc',
-        };
+        return { field, order: prevConfig.order === 'asc' ? 'desc' : 'asc' };
       }
-      // Se for um campo diferente, define para ascendente
-      return {
-        field,
-        order: 'asc',
-      };
+      return { field, order: 'asc' };
     });
-
-    // Resetar para primeira página
     setCurrentPage(1);
   };
 
-  // Navegação para home
+  // Navegação para a página inicial
   const handleGoHome = () => navigate('/home');
 
-  // Manipulação de mudança de formulário
+  // Manipulação de mudança no formulário do modal
   const handleFormChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -111,10 +88,18 @@ const ClientesPage = () => {
     }));
   };
 
-  // Caso não haja usuário autenticado
+  // Se não houver usuário autenticado, exibe uma mensagem de erro
   if (!user) {
     return (
-      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <Box
+        sx={{
+          p: 3,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+        }}
+      >
         <Alert severity="error">Erro ao carregar dados do usuário. Por favor, faça login novamente.</Alert>
       </Box>
     );
@@ -131,7 +116,7 @@ const ClientesPage = () => {
           </Button>
 
           <Typography variant="h4" gutterBottom>
-            Gerenciamento de Clientes
+            Gerenciamento de Usuários
           </Typography>
 
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 2 }}>
@@ -139,28 +124,26 @@ const ClientesPage = () => {
             <TextField
               fullWidth
               variant="outlined"
-              placeholder="Pesquisar clientes por nome ou email..."
+              placeholder="Pesquisar usuários por login ou role..."
               value={searchTerm}
               onChange={handleSearchChange}
             />
-
             {user.role === 'ADMIN' && (
               <>
                 <Button variant="contained" color="primary" onClick={() => handleOpenModal()}>
-                  Adicionar Cliente
+                  Adicionar Usuário
                 </Button>
-
-                <GerarRelatorio clientes={filteredCustomers} loading={isLoading} />
+                <GerarRelatorioUsuarios usuarios={filteredUsuarios} loading={isLoading} />
               </>
             )}
           </Box>
 
-          <ClientesList
-            paginatedCustomers={paginatedCustomers}
+          <UsuariosList
+            paginatedUsuarios={paginatedUsuarios}
             isLoading={isLoading}
             user={user}
-            onEditCustomer={handleOpenModal}
-            onDeleteCustomer={handleDeleteCustomer}
+            onEditUsuario={handleOpenModal}
+            onDeleteUsuario={handleDeleteUsuario}
             sortConfig={sortConfig}
             onSortChange={handleSortChange}
           />
@@ -181,11 +164,11 @@ const ClientesPage = () => {
         <Footer />
       </Box>
 
-      {/* Modal de Cadastro/Edição */}
-      <ClienteModal
+      {/* Modal de Cadastro/Edição de Usuários */}
+      <UsuarioModal
         open={openModal}
         onClose={handleCloseModal}
-        selectedCustomer={selectedCustomer}
+        selectedUsuario={selectedUsuario}
         formData={formData}
         onFormChange={handleFormChange}
         onSave={handleSave}
@@ -193,7 +176,7 @@ const ClientesPage = () => {
         user={user}
       />
 
-      {/* Notification Snackbar */}
+      {/* Snackbar de Notificação */}
       <Snackbar
         open={notification.open}
         autoHideDuration={6000}
@@ -208,4 +191,4 @@ const ClientesPage = () => {
   );
 };
 
-export default ClientesPage;
+export default UsuariosPage;

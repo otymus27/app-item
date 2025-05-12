@@ -1,23 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  getCustomers,
-  addCustomer,
-  updateCustomer,
-  deleteCustomer as deleteCustomerService,
-} from '../services/ClienteService.js';
-import useDebounce from './useDebounce.js';
+  getCategories,
+  addCategory,
+  updateCategory,
+  deleteCategory as deleteCategoryService,
+} from '../../services/CategoriaService.js';
+import useDebounce from '../../hooks/useDebounce.js';
 
-export const useClientesLogic = (user, fetchTrigger) => {
+export const useCategoriasLogic = (user, fetchTrigger) => {
   // Data and UI State
-  const [allCustomers, setAllCustomers] = useState([]);
-  const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [allCategorias, setAllCategorias] = useState([]);
+  const [filteredCategorias, setFilteredCategorias] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   // Modal State
   const [openModal, setOpenModal] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [formData, setFormData] = useState({ nome: '', email: '', telefone: '' });
+  const [selectedCategoria, setSelectedCategoria] = useState(null);
+  const [formData, setFormData] = useState({ nome: '' });
 
   // Notification State
   const [notification, setNotification] = useState({
@@ -32,49 +32,48 @@ export const useClientesLogic = (user, fetchTrigger) => {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await getCustomers();
-      // Adicionar IDs se necessário
-      const processedData = data.map((customer, index) => ({
-        ...customer,
-        id: customer.id || `generated-${index}`,
+      const data = await getCategories();
+      // Adiciona IDs se necessário
+      const processedData = data.map((categoria, index) => ({
+        ...categoria,
+        id: categoria.id || `generated-${index}`,
       }));
-      setAllCustomers(processedData);
-    } catch {
-      // Tratamento de erro
+      setAllCategorias(processedData);
+    } catch (error) {
+      console.error('Erro ao buscar categorias:', error);
+      // tratamento de erro, se necessário
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Trigger initial fetch and any additional fetches
+  // Trigger initial fetch and any additional fetches (por exemplo, por alteração em fetchTrigger)
   useEffect(() => {
     fetchData();
   }, [fetchData, fetchTrigger]);
 
-  // Filtering effect
+  // Filtering effect: filtra as categorias pelo campo "nome"
   useEffect(() => {
-    let currentData = [...allCustomers];
+    let currentData = [...allCategorias];
     if (debouncedSearchTerm) {
-      currentData = allCustomers.filter(
-        (c) =>
-          c.nome.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          c.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()),
+      currentData = allCategorias.filter((categoria) =>
+        categoria.nome.toLowerCase().includes(debouncedSearchTerm.toLowerCase()),
       );
     }
-    setFilteredCustomers(currentData);
-  }, [debouncedSearchTerm, allCustomers]);
+    setFilteredCategorias(currentData);
+  }, [debouncedSearchTerm, allCategorias]);
 
   // Modal Controls
-  const handleOpenModal = (customer = null) => {
-    setSelectedCustomer(customer);
-    setFormData(customer ? { ...customer } : { nome: '', email: '', telefone: '' });
+  const handleOpenModal = (categoria = null) => {
+    setSelectedCategoria(categoria);
+    setFormData(categoria ? { ...categoria } : { nome: '' });
     setOpenModal(true);
   };
 
   const handleCloseModal = () => {
     setOpenModal(false);
-    setSelectedCustomer(null);
-    setFormData({ nome: '', email: '', telefone: '' });
+    setSelectedCategoria(null);
+    setFormData({ nome: '' });
   };
 
   // CRUD Operations
@@ -82,7 +81,7 @@ export const useClientesLogic = (user, fetchTrigger) => {
     if (!user || user.role !== 'ADMIN') {
       setNotification({
         open: true,
-        message: 'Apenas administradores podem salvar clientes.',
+        message: 'Apenas administradores podem salvar categorias.',
         severity: 'warning',
       });
       return;
@@ -91,12 +90,12 @@ export const useClientesLogic = (user, fetchTrigger) => {
     setIsLoading(true);
     try {
       let responseMessage = '';
-      if (selectedCustomer) {
-        await updateCustomer(selectedCustomer.id, formData);
-        responseMessage = 'Cliente atualizado com sucesso!';
+      if (selectedCategoria) {
+        await updateCategory(selectedCategoria.id, formData);
+        responseMessage = 'Categoria atualizada com sucesso!';
       } else {
-        await addCustomer(formData);
-        responseMessage = 'Cliente adicionado com sucesso!';
+        await addCategory(formData);
+        responseMessage = 'Categoria adicionada com sucesso!';
       }
 
       setNotification({
@@ -108,13 +107,13 @@ export const useClientesLogic = (user, fetchTrigger) => {
       // Limpa o termo de pesquisa após salvar
       setSearchTerm('');
 
-      await fetchData(); // Re-fetch data
+      await fetchData(); // Re-fetch dos dados
       handleCloseModal();
     } catch (error) {
-      console.error('Erro ao salvar cliente:', error);
+      console.error('Erro ao salvar categoria:', error);
       setNotification({
         open: true,
-        message: `Erro ao salvar cliente: ${error.message || ''}`,
+        message: `Erro ao salvar categoria: ${error.message || ''}`,
         severity: 'error',
       });
     } finally {
@@ -122,11 +121,11 @@ export const useClientesLogic = (user, fetchTrigger) => {
     }
   };
 
-  const handleDeleteCustomer = async (customerId) => {
+  const handleDeleteCategory = async (categoryId) => {
     if (!user || user.role !== 'ADMIN') {
       setNotification({
         open: true,
-        message: 'Apenas administradores podem excluir clientes.',
+        message: 'Apenas administradores podem excluir categorias.',
         severity: 'warning',
       });
       return;
@@ -134,18 +133,18 @@ export const useClientesLogic = (user, fetchTrigger) => {
 
     setIsLoading(true);
     try {
-      await deleteCustomerService(customerId);
+      await deleteCategoryService(categoryId);
       setNotification({
         open: true,
-        message: 'Cliente excluído com sucesso!',
+        message: 'Categoria excluída com sucesso!',
         severity: 'success',
       });
-      await fetchData(); // Re-fetch data
+      await fetchData(); // Re-fetch dos dados
     } catch (error) {
-      console.error('Erro ao excluir cliente:', error);
+      console.error('Erro ao excluir categoria:', error);
       setNotification({
         open: true,
-        message: `Erro ao excluir cliente: ${error.message || ''}`,
+        message: `Erro ao excluir categoria: ${error.message || ''}`,
         severity: 'error',
       });
     } finally {
@@ -168,12 +167,12 @@ export const useClientesLogic = (user, fetchTrigger) => {
 
   return {
     // State
-    allCustomers,
-    filteredCustomers,
+    allCategorias,
+    filteredCategorias,
     searchTerm,
     isLoading,
     openModal,
-    selectedCustomer,
+    selectedCategoria,
     formData,
     notification,
 
@@ -184,7 +183,7 @@ export const useClientesLogic = (user, fetchTrigger) => {
     handleOpenModal,
     handleCloseModal,
     handleSave,
-    handleDeleteCustomer,
+    handleDeleteCategory,
     handleSearchChange,
     handleCloseNotification,
   };

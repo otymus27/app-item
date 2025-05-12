@@ -5,74 +5,63 @@ import { useNavigate } from 'react-router-dom';
 
 // Hooks e Componentes personalizados
 import useAuth from '../../hooks/useAuth.jsx';
-import { useClientesLogic } from '../../hooks/Clientes/UseClientesLogic.jsx';
-import ClientesList from '../../pages/Clientes/ClientesList.jsx';
-import ClienteModal from '../../components/Modals/ClienteModal.jsx';
-import GerarRelatorio from '../../components/Relatorios/ClientesRelatorio.jsx';
+import { useCategoriasLogic } from '../../hooks/Categoria/UseCategoriasLogic.jsx';
+import CategoriasList from '../../pages/Categorias/CategoriasList.jsx';
+import CategoriaModal from '../../components/Modals/CategoriaModal.jsx';
+import GerarRelatorioCategorias from '../../components/Relatorios/CategoriasRelatorio.jsx';
 
 // Componentes de layout
 import Sidebar from '../../components/Sidebar/Sidebar';
 import CustomHeader from '../../components/Header/CustomHeader';
 import Footer from '../../components/Footer/Footer';
 
-const ClientesPage = () => {
+const CategoriasPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Estado para ordenação
+  // Estado para ordenação (por padrão, ordena pelo campo "nome")
   const [sortConfig, setSortConfig] = useState({
     field: 'nome',
     order: 'asc',
   });
 
-  // Lógica de gerenciamento de clientes
+  // Lógica de gerenciamento de categorias
   const {
-    filteredCustomers,
+    filteredCategorias,
     searchTerm,
     isLoading,
     openModal,
-    selectedCustomer,
+    selectedCategoria,
     formData,
     notification,
-
     handleSearchChange,
     handleOpenModal,
     handleCloseModal,
     handleSave,
-    handleDeleteCustomer,
+    handleDeleteCategory,
     handleCloseNotification,
     setFormData,
-  } = useClientesLogic(user);
+  } = useCategoriasLogic(user);
 
   // Função de ordenação
-  const sortedCustomers = useMemo(() => {
-    if (!filteredCustomers) return [];
-
-    return [...filteredCustomers].sort((a, b) => {
+  const sortedCategorias = useMemo(() => {
+    if (!filteredCategorias) return [];
+    return [...filteredCategorias].sort((a, b) => {
       const valueA = String(a[sortConfig.field] || '').toLowerCase();
       const valueB = String(b[sortConfig.field] || '').toLowerCase();
-
-      if (sortConfig.order === 'asc') {
-        return valueA.localeCompare(valueB);
-      } else {
-        return valueB.localeCompare(valueA);
-      }
+      return sortConfig.order === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
     });
-  }, [filteredCustomers, sortConfig]);
+  }, [filteredCategorias, sortConfig]);
 
   // Lógica de paginação com ordenação
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
-  // Calcular total de páginas
-  const totalPages = Math.ceil(sortedCustomers.length / itemsPerPage);
-
-  // Paginar clientes ordenados
-  const paginatedCustomers = useMemo(() => {
+  const totalPages = Math.ceil(sortedCategorias.length / itemsPerPage);
+  const paginatedCategorias = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return sortedCustomers.slice(startIndex, endIndex);
-  }, [sortedCustomers, currentPage]);
+    return sortedCategorias.slice(startIndex, endIndex);
+  }, [sortedCategorias, currentPage]);
 
   // Manipular mudança de página
   const handlePageChange = (event, value) => {
@@ -81,7 +70,6 @@ const ClientesPage = () => {
 
   // Manipular mudança de ordenação
   const handleSortChange = (field) => {
-    // Se o campo for o mesmo, alterna a ordem
     setSortConfig((prevConfig) => {
       if (prevConfig.field === field) {
         return {
@@ -89,21 +77,15 @@ const ClientesPage = () => {
           order: prevConfig.order === 'asc' ? 'desc' : 'asc',
         };
       }
-      // Se for um campo diferente, define para ascendente
-      return {
-        field,
-        order: 'asc',
-      };
+      return { field, order: 'asc' };
     });
-
-    // Resetar para primeira página
     setCurrentPage(1);
   };
 
-  // Navegação para home
+  // Navegação para a Home
   const handleGoHome = () => navigate('/home');
 
-  // Manipulação de mudança de formulário
+  // Manipulação da mudança de formulário
   const handleFormChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -111,10 +93,18 @@ const ClientesPage = () => {
     }));
   };
 
-  // Caso não haja usuário autenticado
+  // Se não houver usuário autenticado, exibir mensagem de erro
   if (!user) {
     return (
-      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <Box
+        sx={{
+          p: 3,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+        }}
+      >
         <Alert severity="error">Erro ao carregar dados do usuário. Por favor, faça login novamente.</Alert>
       </Box>
     );
@@ -123,7 +113,14 @@ const ClientesPage = () => {
   return (
     <Box sx={{ display: 'flex', height: '100vh', overflowY: 'hidden' }}>
       <Sidebar />
-      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflowY: 'auto',
+        }}
+      >
         <CustomHeader />
         <Box sx={{ flexGrow: 1, p: 3 }}>
           <Button variant="outlined" startIcon={<Home />} onClick={handleGoHome}>
@@ -131,7 +128,7 @@ const ClientesPage = () => {
           </Button>
 
           <Typography variant="h4" gutterBottom>
-            Gerenciamento de Clientes
+            Gerenciamento de Categorias
           </Typography>
 
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 2 }}>
@@ -139,28 +136,26 @@ const ClientesPage = () => {
             <TextField
               fullWidth
               variant="outlined"
-              placeholder="Pesquisar clientes por nome ou email..."
+              placeholder="Pesquisar categorias por nome..."
               value={searchTerm}
               onChange={handleSearchChange}
             />
-
             {user.role === 'ADMIN' && (
               <>
                 <Button variant="contained" color="primary" onClick={() => handleOpenModal()}>
-                  Adicionar Cliente
+                  Adicionar Categoria
                 </Button>
-
-                <GerarRelatorio clientes={filteredCustomers} loading={isLoading} />
+                <GerarRelatorioCategorias categorias={filteredCategorias} loading={isLoading} />
               </>
             )}
           </Box>
 
-          <ClientesList
-            paginatedCustomers={paginatedCustomers}
+          <CategoriasList
+            paginatedCategorias={paginatedCategorias}
             isLoading={isLoading}
             user={user}
-            onEditCustomer={handleOpenModal}
-            onDeleteCustomer={handleDeleteCustomer}
+            onEditCategoria={handleOpenModal}
+            onDeleteCategoria={handleDeleteCategory}
             sortConfig={sortConfig}
             onSortChange={handleSortChange}
           />
@@ -182,10 +177,10 @@ const ClientesPage = () => {
       </Box>
 
       {/* Modal de Cadastro/Edição */}
-      <ClienteModal
+      <CategoriaModal
         open={openModal}
         onClose={handleCloseModal}
-        selectedCustomer={selectedCustomer}
+        selectedCategoria={selectedCategoria}
         formData={formData}
         onFormChange={handleFormChange}
         onSave={handleSave}
@@ -208,4 +203,4 @@ const ClientesPage = () => {
   );
 };
 
-export default ClientesPage;
+export default CategoriasPage;
