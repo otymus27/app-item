@@ -39,6 +39,15 @@ const AppRoutes = () => {
             </PrivateRoute>
           }
         />
+
+        <Routes
+          path="/item"
+          element={
+            <PrivateRoute>
+              <ItemPage></ItemPage>
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </Router>
   );

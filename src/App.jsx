@@ -7,6 +7,7 @@ import HomePage from './pages/Home/HomePage';
 import ClientesPage from './pages/Clientes/ClientesPage';
 import UsuariosPage from './pages/Usuarios/UsuariosPage';
 import CategoriasPage from './pages/Categorias/CategoriasPage';
+import ItemPage from './pages/Item/ItemPage';
 
 function App() {
   return (
@@ -45,6 +46,15 @@ function App() {
             element={
               <PrivateRoute>
                 <CategoriasPage />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/item"
+            element={
+              <PrivateRoute>
+                <ItemPage />
               </PrivateRoute>
             }
           />

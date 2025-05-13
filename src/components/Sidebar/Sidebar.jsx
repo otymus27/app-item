@@ -73,8 +73,8 @@ const Sidebar = () => {
       icon: <Inventory />,
       text: 'Itens',
       children: [
-        { text: 'Cadastrar', path: '/itens/cadastrar', icon: <AddCircleOutline /> },
-        { text: 'Consultar', path: '/itens/consultar', icon: <Search /> },
+        { text: 'Gerenciar', path: '/item', icon: <AddCircleOutline /> },
+        { text: 'Consultas', path: '/item/consulta', icon: <Search /> },
         { text: 'Relatório', path: '/itens/relatorio', icon: <BarChart /> },
       ],
     },
