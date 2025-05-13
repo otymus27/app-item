@@ -93,7 +93,7 @@ const Sidebar = () => {
       icon: <Assignment />,
       text: 'Empréstimos',
       children: [
-        { text: 'Novo', path: '/emprestimos/novo', icon: <AddCircleOutline /> },
+        { text: 'Novo', path: '/emprestimo', icon: <AddCircleOutline /> },
         { text: 'Consultar', path: '/emprestimos/consultar', icon: <Search /> },
         { text: 'Relatório', path: '/emprestimos/relatorio', icon: <BarChart /> },
       ],

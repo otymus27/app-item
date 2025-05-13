@@ -6,6 +6,7 @@ import PrivateRoute from './PrivateRoute.jsx';
 import ClientesPage from '../pages/Clientes/ClientesPage.jsx';
 import UsuariosPage from '../pages/Usuarios/UsuariosPage.jsx';
 import CategoriasPage from './pages/Categorias/CategoriasPage';
+import EmprestimoPage from '../pages/Emprestimos/EmprestimosPage.jsx';
 
 const AppRoutes = () => {
   return (
@@ -45,6 +46,15 @@ const AppRoutes = () => {
           element={
             <PrivateRoute>
               <ItemPage></ItemPage>
+            </PrivateRoute>
+          }
+        />
+
+        <Routes
+          path="/emprestimo"
+          element={
+            <PrivateRoute>
+              <EmprestimoPage></EmprestimoPage>
             </PrivateRoute>
           }
         />
