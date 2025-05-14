@@ -6,7 +6,7 @@ const API_URL = '/cliente'; // Ajuste conforme sua configuração de backend
  * Busca todos os clientes
  * @returns {Promise}
  */
-export const getCustomers = async () => {
+export const getClientes = async () => {
   try {
     const response = await API.get(API_URL); // Rota correta na API
     return response.data; // Retorna [{ id, nome, email, telefone }]

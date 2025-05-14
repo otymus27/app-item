@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  getCustomers,
+  getClientes,
   addCustomer,
   updateCustomer,
   deleteCustomer as deleteCustomerService,
@@ -32,7 +32,7 @@ export const useClientesLogic = (user, fetchTrigger) => {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await getCustomers();
+      const data = await getClientes();
       // Adicionar IDs se necessário
       const processedData = data.map((customer, index) => ({
         ...customer,

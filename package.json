@@ -15,6 +15,9 @@
     "@mui/icons-material": "^7.1.0",
     "@mui/material": "^7.1.0",
     "axios": "^1.9.0",
+    "date-fns": "^4.1.0",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.5.28",
     "lucide-react": "^0.509.0",
     "path": "^0.12.7",
     "react": "^19.1.0",
@@ -23,8 +26,6 @@
     "react-router-dom": "^7.6.0",
     "router": "^2.2.0",
     "shadcn-ui": "^0.9.5",
-    "jspdf": "^2.5.1",
-    "jspdf-autotable": "^3.5.28",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
