@@ -1,7 +1,6 @@
 // src/components/Emprestimos/EmprestimoModal.jsx
 import React, { useEffect, useState } from 'react';
 import { Modal, Box, Typography, Button, Autocomplete, TextField, CircularProgress, Alert } from '@mui/material';
-import { createEmprestimo } from '../../services/EmprestimoService';
 import { getClientes } from '../../services/ClienteService';
 import { getItems } from '../../services/ItemService';
 import Snackbar from '../../components/Snackbar/Snackbar';
@@ -24,14 +23,13 @@ const EmprestimoModal = ({ open, onClose, onCreate }) => {
   const [itens, setItens] = useState([]);
   const [clienteSelecionado, setClienteSelecionado] = useState(null);
   const [itensSelecionados, setItensSelecionados] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   useEffect(() => {
     if (open) {
       carregarDados();
-    } else {
-      limparFormulario();
+      limparFormulario(); // limpa formulário sempre que abrir modal
     }
   }, [open]);
 
@@ -65,20 +63,7 @@ const EmprestimoModal = ({ open, onClose, onCreate }) => {
       itemIds: itensSelecionados.map((item) => item.id),
     };
 
-    try {
-      setLoading(true);
-      await createEmprestimo(data);
-
-      // Chama onCreate para atualizar a lista no componente pai
-      onCreate(data);
-      onClose(); // Fecha o modal
-      mostrarMensagem('Empréstimo realizado com sucesso!', 'success');
-    } catch (error) {
-      console.error('Erro ao criar empréstimo:', error);
-      mostrarMensagem('Erro ao criar empréstimo.', 'error');
-    } finally {
-      setLoading(false);
-    }
+    onCreate(data);
   };
 
   return (
@@ -116,22 +101,22 @@ const EmprestimoModal = ({ open, onClose, onCreate }) => {
               </Button>
             </Box>
           </Box>
-
-          <Snackbar
-            open={snackbar?.open || false} // Usa um valor default caso snackbar esteja undefined
-            autoHideDuration={4000}
-            onClose={() => setSnackbar({ ...snackbar, open: false })}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-          >
-            <Alert
-              onClose={() => setSnackbar({ ...snackbar, open: false })}
-              severity={snackbar.severity || 'info'} // Asegura um valor default
-              sx={{ width: '100%' }}
-            >
-              {snackbar.message || 'Mensagem padrão'}
-            </Alert>
-          </Snackbar>
         </Modal>
+
+        <Snackbar
+          open={snackbar?.open || false} // Usa um valor default caso snackbar esteja undefined
+          autoHideDuration={4000}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert
+            onClose={() => setSnackbar({ ...snackbar, open: false })}
+            severity={snackbar.severity || 'info'} // Asegura um valor default
+            sx={{ width: '100%' }}
+          >
+            {snackbar.message || 'Mensagem padrão'}
+          </Alert>
+        </Snackbar>
       </ErrorBoundary>
     </>
   );

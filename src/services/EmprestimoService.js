@@ -13,7 +13,11 @@ export const createEmprestimo = async (emprestimoData) => {
     const response = await API.post(API_URL, emprestimoData);
     return response.data;
   } catch (error) {
-    console.error('Erro ao criar empréstimo:', error);
+    if (error.response) {
+      console.error('Erro ao criar empréstimo:', error.response.data); // <-- aqui está o detalhe
+    } else {
+      console.error('Erro desconhecido:', error);
+    }
     throw error;
   }
 };

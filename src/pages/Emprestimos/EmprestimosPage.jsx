@@ -1,84 +1,112 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Button, Typography } from '@mui/material';
+// src/pages/EmprestimosPage.jsx
+import React, { useEffect, useState } from 'react';
+import { Box, Button, Snackbar, Alert, Typography, Pagination, CircularProgress } from '@mui/material';
 import EmprestimoTable from '../../components/Tables/EmprestimoTable';
 import EmprestimoModal from '../../components/Modals/EmprestimoModal';
-import CustomSnackbar from '../../components/Snackbar/Snackbar';
-import { createEmprestimo, getEmprestimos } from '../../services/EmprestimoService';
+import { getEmprestimos, createEmprestimo } from '../../services/EmprestimoService';
 
-const EmprestimoPage = () => {
+const EmprestimosPage = () => {
   const [emprestimos, setEmprestimos] = useState([]);
+  const [pagina, setPagina] = useState(0); // página atual (0-based)
+  const [tamanhoPagina] = useState(10);
+  const [totalPaginas, setTotalPaginas] = useState(1);
+  const [loading, setLoading] = useState(false);
+
   const [openModal, setOpenModal] = useState(false);
+
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
-  // Função para buscar todos os empréstimos
   const fetchEmprestimos = async () => {
+    setLoading(true);
     try {
-      const data = await getEmprestimos();
-      setEmprestimos(data);
+      const response = await getEmprestimos({ page: pagina, size: tamanhoPagina });
+
+      setEmprestimos(response.content || []);
+      setTotalPaginas(response.totalPages || 1);
     } catch {
       setSnackbarMessage('Erro ao carregar os empréstimos.');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Executa o fetch ao carregar a página
   useEffect(() => {
     fetchEmprestimos();
-  }, []);
+  }, [pagina, tamanhoPagina]);
 
-  // Função para abrir o modal
-  const handleOpenModal = () => {
-    setOpenModal(true);
-  };
-
-  // Função para fechar o modal
-  const handleCloseModal = () => {
-    setOpenModal(false);
-  };
-
-  // Função para criar um novo empréstimo
   const handleCreateEmprestimo = async (emprestimoData) => {
     try {
       await createEmprestimo(emprestimoData);
+
       setSnackbarMessage('Empréstimo criado com sucesso!');
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
-      fetchEmprestimos(); // Atualiza a lista de empréstimos
-      handleCloseModal(); // Fecha o modal
-    } catch {
-      setSnackbarMessage('Erro ao criar o empréstimo.');
+
+      // Volta para a primeira página e atualiza
+      setPagina(0);
+      await recarregarPrimeiraPagina();
+      setOpenModal(false);
+      setOpenModal(false);
+    } catch (error) {
+      const msg = error?.response?.data?.message || 'Erro ao criar o empréstimo.';
+      setSnackbarMessage(msg);
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
   };
 
+  const recarregarPrimeiraPagina = async () => {
+    const response = await getEmprestimos({ page: 0, size: tamanhoPagina });
+    setEmprestimos(response.content || []);
+    setTotalPaginas(response.totalPages || 1);
+  };
+
+  const handleChangePagina = (event, value) => {
+    setPagina(value - 1); // MUI usa 1-based, backend usa 0-based
+  };
+
   return (
-    <Container>
+    <Box p={3}>
       <Typography variant="h4" gutterBottom>
-        Gerenciar Empréstimos
+        Gerenciamento de Empréstimos
       </Typography>
 
-      <Button variant="contained" color="primary" onClick={handleOpenModal} sx={{ marginBottom: '20px' }}>
-        Criar Novo Empréstimo
+      <Button variant="contained" color="primary" onClick={() => setOpenModal(true)}>
+        Novo Empréstimo
       </Button>
 
-      <EmprestimoTable emprestimos={emprestimos} />
+      <Box mt={3}>
+        {loading ? (
+          <Box display="flex" justifyContent="center" mt={4}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <EmprestimoTable emprestimos={emprestimos} />
+        )}
+      </Box>
 
-      {/* Modal de criação de empréstimo */}
-      <EmprestimoModal open={openModal} onClose={handleCloseModal} onCreate={handleCreateEmprestimo} />
+      <Box display="flex" justifyContent="center" mt={3}>
+        <Pagination count={totalPaginas} page={pagina + 1} onChange={handleChangePagina} color="primary" />
+      </Box>
 
-      {/* Snackbar para mensagens de sucesso/erro */}
-      <CustomSnackbar
+      <EmprestimoModal open={openModal} onClose={() => setOpenModal(false)} onCreate={handleCreateEmprestimo} />
+
+      <Snackbar
         open={snackbarOpen}
+        autoHideDuration={4000}
         onClose={() => setSnackbarOpen(false)}
-        severity={snackbarSeverity}
-        message={snackbarMessage}
-      />
-    </Container>
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 
-export default EmprestimoPage;
+export default EmprestimosPage;
