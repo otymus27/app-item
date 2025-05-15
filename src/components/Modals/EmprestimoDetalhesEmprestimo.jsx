@@ -1,63 +1,49 @@
+// EmprestimoDetalhesModal.jsx
 import React from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
-} from '@mui/material';
+import { Modal, Box, Typography, List, ListItem, ListItemText, Button } from '@mui/material';
+
+const style = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 500,
+  bgcolor: 'background.paper',
+  borderRadius: 2,
+  boxShadow: 24,
+  p: 4,
+};
 
 const EmprestimoDetalhesModal = ({ open, onClose, emprestimo }) => {
   if (!emprestimo) return null;
 
-  const { id, cliente, itens, dataEmprestimo, dataDevolucao, status } = emprestimo;
-
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Detalhes do Empréstimo</DialogTitle>
-      <DialogContent dividers>
-        <Typography variant="subtitle1" gutterBottom>
-          <strong>ID:</strong> {id}
+    <Modal open={open} onClose={onClose}>
+      <Box sx={style}>
+        <Typography variant="h6" gutterBottom>
+          Detalhes do Empréstimo #{emprestimo.id}
         </Typography>
 
-        <Typography variant="subtitle1" gutterBottom>
-          <strong>Cliente:</strong> {cliente?.nome}
-        </Typography>
+        <Typography>Cliente: {emprestimo.clienteNome}</Typography>
+        <Typography>Data do Empréstimo: {emprestimo.dataEmprestimo}</Typography>
+        <Typography>Status: {emprestimo.status}</Typography>
 
-        <Typography variant="subtitle1" gutterBottom>
-          <strong>Data do Empréstimo:</strong> {dataEmprestimo}
-        </Typography>
-
-        <Typography variant="subtitle1" gutterBottom>
-          <strong>Data de Devolução:</strong> {dataDevolucao || 'Ainda não devolvido'}
-        </Typography>
-
-        <Typography variant="subtitle1" gutterBottom>
-          <strong>Status:</strong> {status}
-        </Typography>
-
-        <Divider sx={{ my: 2 }} />
-
-        <Typography variant="h6">Itens Emprestados</Typography>
+        <Typography sx={{ mt: 2, fontWeight: 'bold' }}>Itens:</Typography>
         <List dense>
-          {itens?.map((item) => (
+          {emprestimo.itens.map((item) => (
             <ListItem key={item.id}>
-              <ListItemText primary={item.nome} secondary={`Categoria: ${item.categoria?.nome || 'N/A'}`} />
+              <ListItemText primary={item.nome} />
             </ListItem>
           ))}
         </List>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="primary">
-          Fechar
-        </Button>
-      </DialogActions>
-    </Dialog>
+
+        <Box mt={2} display="flex" justifyContent="flex-end">
+          <Button onClick={onClose} variant="outlined">
+            Fechar
+          </Button>
+        </Box>
+      </Box>
+    </Modal>
   );
 };
 

@@ -1,8 +1,15 @@
 // EmprestimosPage.jsx
 import React, { useState } from 'react';
-import { Button, Box } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { Button, Box, Typography } from '@mui/material';
+import { Home } from '@mui/icons-material';
 import EmprestimoModal from '../../components/Modals/EmprestimoModal.jsx';
 import EmprestimoTable from '../../components/Tables/EmprestimoTable';
+
+// Componentes de layout
+import Sidebar from '../../components/Sidebar/Sidebar';
+import CustomHeader from '../../components/Header/CustomHeader.jsx';
+import Footer from '../../components/Footer/Footer.jsx';
 
 const EmprestimosPage = () => {
   const [modalAberto, setModalAberto] = useState(false);
@@ -11,18 +18,44 @@ const EmprestimosPage = () => {
   const handleOpenModal = () => setModalAberto(true);
   const handleCloseModal = () => setModalAberto(false);
 
+  const navigate = useNavigate();
+
   const handleEmprestimoCriado = () => {
     setAtualizarTabela((prev) => !prev); // Força re-render do EmprestimoTable
     handleCloseModal();
   };
 
+  // Navegação para a Home
+  const handleGoHome = () => navigate('/home');
+
   return (
-    <Box p={2}>
-      <Button variant="contained" color="primary" onClick={handleOpenModal}>
-        Novo Empréstimo
-      </Button>
-      <EmprestimoTable atualizar={atualizarTabela} />
-      <EmprestimoModal open={modalAberto} onClose={handleCloseModal} onCreate={handleEmprestimoCriado} />
+    <Box sx={{ display: 'flex', height: '100vh', overflowY: 'hidden' }}>
+      <Sidebar />
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflowY: 'auto',
+        }}
+      >
+        <CustomHeader />
+        <Box sx={{ flexGrow: 1, p: 3 }}>
+          <Button variant="outlined" startIcon={<Home />} onClick={handleGoHome}>
+            Início
+          </Button>
+
+          <Typography variant="h4" gutterBottom>
+            Gerenciamento de Empréstimos
+          </Typography>
+          <Button variant="contained" color="primary" onClick={handleOpenModal}>
+            Novo Empréstimo
+          </Button>
+          <EmprestimoTable atualizar={atualizarTabela} />
+          <EmprestimoModal open={modalAberto} onClose={handleCloseModal} onCreate={handleEmprestimoCriado} />
+        </Box>
+        <Footer />
+      </Box>
     </Box>
   );
 };

@@ -11,13 +11,17 @@ import {
   Button,
   TablePagination,
 } from '@mui/material';
-import { getEmprestimos, finalizarEmprestimoById } from '../../services/EmprestimoService';
+import { getEmprestimos, finalizarEmprestimoById, getEmprestimoById } from '../../services/EmprestimoService';
+import EmprestimoDetalhesModal from '../../components/Modals/EmprestimoDetalhesEmprestimo.jsx';
 
 const EmprestimoTable = ({ atualizar }) => {
   const [emprestimos, setEmprestimos] = useState([]);
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(5);
   const [totalElements, setTotalElements] = useState(0);
+
+  const [detalhesAberto, setDetalhesAberto] = useState(false);
+  const [emprestimoSelecionado, setEmprestimoSelecionado] = useState(null);
 
   const fetchEmprestimos = async () => {
     try {
@@ -47,6 +51,22 @@ const EmprestimoTable = ({ atualizar }) => {
     }
   };
 
+  //Função para chamar detalhes do emprestimo
+  const abrirDetalhes = async (id) => {
+    try {
+      const detalhes = await getEmprestimoById(id);
+      setEmprestimoSelecionado(detalhes);
+      setDetalhesAberto(true);
+    } catch (error) {
+      console.error('Erro ao buscar detalhes:', error);
+    }
+  };
+
+  const fecharDetalhes = () => {
+    setDetalhesAberto(false);
+    setEmprestimoSelecionado(null);
+  };
+
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -72,14 +92,21 @@ const EmprestimoTable = ({ atualizar }) => {
           <TableBody>
             {Array.isArray(emprestimos) && emprestimos.length > 0 ? (
               emprestimos.map((emp) => (
-                <TableRow key={emp.id}>
+                <TableRow key={emp.id} hover style={{ cursor: 'pointer' }} onClick={() => abrirDetalhes(emp.id)}>
                   <TableCell>{emp.id}</TableCell>
                   <TableCell>{emp.clienteNome}</TableCell>
                   <TableCell>{emp.dataEmprestimo}</TableCell>
                   <TableCell>{emp.status}</TableCell>
                   <TableCell align="center">
                     {emp.status === 'EMPRESTADO' && (
-                      <Button variant="contained" color="primary" onClick={() => handleFinalizar(emp.id)}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={(e) => {
+                          e.stopPropagation(); // impedir que abra o modal
+                          handleFinalizar(emp.id);
+                        }}
+                      >
                         Finalizar
                       </Button>
                     )}
@@ -107,6 +134,8 @@ const EmprestimoTable = ({ atualizar }) => {
         rowsPerPageOptions={[5, 10, 20]}
         labelRowsPerPage="Empréstimos por página"
       />
+
+      <EmprestimoDetalhesModal open={detalhesAberto} onClose={fecharDetalhes} emprestimo={emprestimoSelecionado} />
     </Paper>
   );
 };
