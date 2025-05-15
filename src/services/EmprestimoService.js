@@ -96,3 +96,26 @@ export const finalizarEmprestimoById = async (id) => {
     throw error;
   }
 };
+
+//metodo para filtragem de emprestimos por status e data
+export async function getEmprestimosFiltrados(filtros) {
+  try {
+    // Monta query params dinamicamente
+    const params = {};
+    if (filtros.status && filtros.status !== 'TODOS') {
+      params.status = filtros.status;
+    }
+    if (filtros.dataInicio) {
+      params.dataInicio = filtros.dataInicio;
+    }
+    if (filtros.dataFim) {
+      params.dataFim = filtros.dataFim;
+    }
+
+    const response = await API.get(`${API_URL}/relatorio`, { params });
+    return response.data; // Espera um array de empréstimos conforme seu DTO
+  } catch (error) {
+    console.error('Erro ao buscar empréstimos filtrados:', error);
+    return [];
+  }
+}

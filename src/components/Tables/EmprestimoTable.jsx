@@ -1,4 +1,3 @@
-// EmprestimoTable.jsx
 import React, { useEffect, useState } from 'react';
 import {
   Table,
@@ -14,7 +13,7 @@ import {
 import { getEmprestimos, finalizarEmprestimoById, getEmprestimoById } from '../../services/EmprestimoService';
 import EmprestimoDetalhesModal from '../../components/Modals/EmprestimoDetalhesEmprestimo.jsx';
 
-const EmprestimoTable = ({ atualizar }) => {
+const EmprestimoTable = ({ atualizar, clienteSelecionado }) => {
   const [emprestimos, setEmprestimos] = useState([]);
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(5);
@@ -26,13 +25,18 @@ const EmprestimoTable = ({ atualizar }) => {
   const fetchEmprestimos = async () => {
     try {
       const response = await getEmprestimos({ page, size });
-      if (response && response.content) {
-        setEmprestimos(response.content);
-        setTotalElements(response.totalElements);
-      } else {
-        setEmprestimos([]);
-        setTotalElements(0);
-      }
+      console.log('Resposta da API:', response);
+
+      // Garantir que response.content seja um array antes de acessá-lo
+      const emprestimosLista = Array.isArray(response.content) ? response.content : [];
+
+      // Filtragem por cliente, caso tenha sido selecionado
+      const emprestimosFiltrados = clienteSelecionado
+        ? emprestimosLista.filter((e) => e.clienteId === clienteSelecionado?.id)
+        : emprestimosLista;
+
+      setEmprestimos(emprestimosFiltrados);
+      setTotalElements(response.totalElements || 0);
     } catch (error) {
       console.error('Erro ao carregar empréstimos:', error);
     }
@@ -40,7 +44,7 @@ const EmprestimoTable = ({ atualizar }) => {
 
   useEffect(() => {
     fetchEmprestimos();
-  }, [page, size, atualizar]);
+  }, [page, size, atualizar, clienteSelecionado]);
 
   const handleFinalizar = async (id) => {
     try {
@@ -51,7 +55,6 @@ const EmprestimoTable = ({ atualizar }) => {
     }
   };
 
-  //Função para chamar detalhes do emprestimo
   const abrirDetalhes = async (id) => {
     try {
       const detalhes = await getEmprestimoById(id);
@@ -67,7 +70,7 @@ const EmprestimoTable = ({ atualizar }) => {
     setEmprestimoSelecionado(null);
   };
 
-  const handleChangePage = (event, newPage) => {
+  const handleChangePage = (_, newPage) => {
     setPage(newPage);
   };
 
@@ -90,12 +93,12 @@ const EmprestimoTable = ({ atualizar }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {Array.isArray(emprestimos) && emprestimos.length > 0 ? (
+            {emprestimos.length > 0 ? (
               emprestimos.map((emp) => (
                 <TableRow key={emp.id} hover style={{ cursor: 'pointer' }} onClick={() => abrirDetalhes(emp.id)}>
                   <TableCell>{emp.id}</TableCell>
                   <TableCell>{emp.clienteNome}</TableCell>
-                  <TableCell>{emp.dataEmprestimo}</TableCell>
+                  <TableCell>{new Intl.DateTimeFormat('pt-BR').format(new Date(emp.dataEmprestimo))}</TableCell>
                   <TableCell>{emp.status}</TableCell>
                   <TableCell align="center">
                     {emp.status === 'EMPRESTADO' && (
@@ -103,7 +106,7 @@ const EmprestimoTable = ({ atualizar }) => {
                         variant="contained"
                         color="primary"
                         onClick={(e) => {
-                          e.stopPropagation(); // impedir que abra o modal
+                          e.stopPropagation();
                           handleFinalizar(emp.id);
                         }}
                       >

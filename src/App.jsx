@@ -10,6 +10,7 @@ import CategoriasPage from './pages/Categorias/CategoriasPage';
 import ItemPage from './pages/Item/ItemPage';
 import EmprestimosPage from './pages/Emprestimos/EmprestimosPage.jsx';
 import { SnackbarProvider } from './hooks/Emprestimos/useSnackbar.jsx'; // Importação do SnackbarProvider
+import EmprestimosRelatorio from './components/Relatorios/EmprestimosRelatorio.jsx';
 
 function App() {
   return (
@@ -65,6 +66,15 @@ function App() {
               element={
                 <PrivateRoute>
                   <EmprestimosPage />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/emprestimos/relatorio"
+              element={
+                <PrivateRoute>
+                  <EmprestimosRelatorio />
                 </PrivateRoute>
               }
             />
