@@ -1,3 +1,4 @@
+// EmprestimoTable.jsx
 import React, { useEffect, useState } from 'react';
 import {
   Table,
@@ -12,7 +13,7 @@ import {
 } from '@mui/material';
 import { getEmprestimos, finalizarEmprestimoById } from '../../services/EmprestimoService';
 
-const EmprestimoTable = () => {
+const EmprestimoTable = ({ atualizar }) => {
   const [emprestimos, setEmprestimos] = useState([]);
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(5);
@@ -21,13 +22,11 @@ const EmprestimoTable = () => {
   const fetchEmprestimos = async () => {
     try {
       const response = await getEmprestimos({ page, size });
-
-      // Certifique-se de que a resposta tenha o formato correto
       if (response && response.content) {
         setEmprestimos(response.content);
         setTotalElements(response.totalElements);
       } else {
-        setEmprestimos([]); // Caso a resposta não tenha o formato esperado
+        setEmprestimos([]);
         setTotalElements(0);
       }
     } catch (error) {
@@ -37,7 +36,7 @@ const EmprestimoTable = () => {
 
   useEffect(() => {
     fetchEmprestimos();
-  }, [page, size]);
+  }, [page, size, atualizar]);
 
   const handleFinalizar = async (id) => {
     try {

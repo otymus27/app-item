@@ -1,23 +1,20 @@
-// src/components/shared/FeedbackSnackbar.jsx
+// components/Snackbar/Snackbar.jsx
 import React from 'react';
-import { Snackbar, Alert } from '@mui/material';
+import { Snackbar as MuiSnackbar, Alert } from '@mui/material';
 
-const FeedbackSnackbar = ({ open, onClose, message, severity = 'success' }) => {
-  const validSeverities = ['success', 'info', 'warning', 'error'];
-  const safeSeverity = validSeverities.includes(severity) ? severity : 'info';
-
+const Snackbar = ({ open, onClose, message, severity = 'success', autoHideDuration = 4000 }) => {
   return (
-    <Snackbar
+    <MuiSnackbar
       open={open}
-      autoHideDuration={4000}
+      autoHideDuration={autoHideDuration}
       onClose={onClose}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
     >
-      <Alert onClose={onClose} severity={safeSeverity} sx={{ width: '100%' }}>
-        {message || 'Erro desconhecido'}
+      <Alert onClose={onClose} severity={severity} sx={{ width: '100%' }}>
+        {message}
       </Alert>
-    </Snackbar>
+    </MuiSnackbar>
   );
 };
 
-export default FeedbackSnackbar;
+export default Snackbar;

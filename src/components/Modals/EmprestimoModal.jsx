@@ -1,6 +1,7 @@
-// src/components/Emprestimos/EmprestimoModal.jsx
+// EmprestimoModal.jsx
 import React, { useEffect, useState } from 'react';
-import { Modal, Box, Typography, Button, Autocomplete, TextField, CircularProgress, Alert } from '@mui/material';
+import { Modal, Box, Typography, Button, Autocomplete, TextField, CircularProgress } from '@mui/material';
+import { createEmprestimo } from '../../services/EmprestimoService';
 import { getClientes } from '../../services/ClienteService';
 import { getItems } from '../../services/ItemService';
 import Snackbar from '../../components/Snackbar/Snackbar';
@@ -23,13 +24,14 @@ const EmprestimoModal = ({ open, onClose, onCreate }) => {
   const [itens, setItens] = useState([]);
   const [clienteSelecionado, setClienteSelecionado] = useState(null);
   const [itensSelecionados, setItensSelecionados] = useState([]);
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   useEffect(() => {
     if (open) {
       carregarDados();
-      limparFormulario(); // limpa formulário sempre que abrir modal
+    } else {
+      limparFormulario();
     }
   }, [open]);
 
@@ -63,7 +65,18 @@ const EmprestimoModal = ({ open, onClose, onCreate }) => {
       itemIds: itensSelecionados.map((item) => item.id),
     };
 
-    onCreate(data);
+    try {
+      setLoading(true);
+      await createEmprestimo(data);
+      mostrarMensagem('Empréstimo realizado com sucesso!', 'success');
+      onCreate();
+    } catch (error) {
+      console.error('Erro ao criar empréstimo:', error);
+      const msg = error.response?.data?.message || 'Erro ao criar empréstimo.';
+      mostrarMensagem(msg, 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -76,9 +89,9 @@ const EmprestimoModal = ({ open, onClose, onCreate }) => {
             </Typography>
 
             <Autocomplete
-              options={clientes || []} // Garantir que não seja undefined
+              options={clientes}
               getOptionLabel={(option) => option.nome || ''}
-              value={clienteSelecionado || null} // Garantir que 'clienteSelecionado' não seja undefined
+              value={clienteSelecionado}
               onChange={(event, newValue) => setClienteSelecionado(newValue)}
               renderInput={(params) => <TextField {...params} label="Selecionar Cliente" fullWidth margin="normal" />}
             />
@@ -86,7 +99,7 @@ const EmprestimoModal = ({ open, onClose, onCreate }) => {
             <Autocomplete
               multiple
               options={itens}
-              getOptionLabel={(option) => option.nome}
+              getOptionLabel={(option) => option.nome || ''}
               value={itensSelecionados}
               onChange={(event, newValue) => setItensSelecionados(newValue)}
               renderInput={(params) => <TextField {...params} label="Selecionar Itens" fullWidth margin="normal" />}
@@ -104,19 +117,11 @@ const EmprestimoModal = ({ open, onClose, onCreate }) => {
         </Modal>
 
         <Snackbar
-          open={snackbar?.open || false} // Usa um valor default caso snackbar esteja undefined
-          autoHideDuration={4000}
+          open={snackbar.open}
           onClose={() => setSnackbar({ ...snackbar, open: false })}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert
-            onClose={() => setSnackbar({ ...snackbar, open: false })}
-            severity={snackbar.severity || 'info'} // Asegura um valor default
-            sx={{ width: '100%' }}
-          >
-            {snackbar.message || 'Mensagem padrão'}
-          </Alert>
-        </Snackbar>
+          message={snackbar.message}
+          severity={snackbar.severity}
+        />
       </ErrorBoundary>
     </>
   );
